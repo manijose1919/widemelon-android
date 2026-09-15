@@ -1,8 +1,5 @@
-*.apk
 /app/build/
 /app/.cxx/
-/artifacts/
-artifacts/
 /build
 /build/
 /captures
@@ -17,3 +14,6 @@ artifacts/
 .kotlin
 /local.properties
 agent-tools/
+*.apk
+!releases/WideMelonDS-debug.apk
+artifacts/
