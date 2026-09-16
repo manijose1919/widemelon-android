@@ -9,13 +9,16 @@ Widescreen logic is adapted from [pruefsumme/widemelon](https://github.com/pruef
 ## What you get
 
 - Expands the DS **3D** view (even widths from 256 to 768) while keeping **2D / menus / touchscreen** at native proportions in the center
-- OpenGL renderer only (same constraint as desktop WideMelon)
+- Works with **OpenGL** and **Compute** (Adreno) renderers
+- Internal resolution is **auto-capped** with wider views so WideMelon × IR stays smooth on phones
+- Defaults: OpenGL, 2:1 (384) widescreen, 2× IR, Vibrant filter
+- Landscape default layout uses a wide top screen aspect
 - Settings → Video → **Widescreen 3D view**
 - App ID `me.magnum.melonds.wide` so it can sit next to stock melonDS
 
 ## Requirements
 
-- Android 7.0+ (API 24), GLES 3.2 for OpenGL renderer
+- Android 7.0+ (API 24), GLES 3.2 for OpenGL / Compute renderers
 - A physical controller is optional but recommended (ROG Tessen / any HID gamepad)
 - Legally obtained `.nds` ROMs (not included)
 
@@ -31,11 +34,11 @@ adb install -r app/build/outputs/apk/gitHubProd/debug/app-gitHub-prod-debug.apk
 
 1. Open **WideMelon DS**
 2. **Settings → Video**
-3. Set **Renderer** to **OpenGL**
-4. Set **Widescreen 3D view** (try **7:3 (448)** or **2:1 (384)** first)
-5. Optionally raise **Internal resolution**
-6. Start a game (change widescreen before launch, or restart the game after changing)
-7. In **Input → Layouts**, widen the top screen rectangle if it looks letterboxed—the framebuffer is wider than 4:3
+3. Set **Renderer** to **OpenGL** (or **Compute** on Adreno / S25 Ultra for better efficiency)
+4. Set **Widescreen 3D view** (try **2:1 (384)** first; higher widths cost more GPU)
+5. Keep **Internal resolution** at **2×** unless the game stays full speed at higher values
+6. Prefer **Vibrant** or **Quilez** filters; heavy filters (HQ4X) cost more with wide frames
+7. Start a game (change widescreen before launch, or restart the game after changing)
 
 Your ROG USB-C controller should already work as a standard Android gamepad; map buttons under **Input** if needed.
 
@@ -54,8 +57,9 @@ APK output: `app/build/outputs/apk/gitHubProd/debug/`
 
 ## Notes / limits
 
-- Widescreen is **game-dependent** (same as desktop WideMelon). Some titles cull geometry outside the original view.
-- Software and Compute renderers stay at native 4:3.
+- Widescreen is **game-dependent** (same as desktop WideMelon). Titles like HGSS often cull map tiles outside the original FOV, so **pop-in when panning** can still happen—that is game logic, not the compositor.
+- Dashed seam artifacts from projection truncation are reduced via rounded WideMelon math in 2.0.3+.
+- Software renderer stays at native 4:3.
 - Touch input coordinates for the bottom screen remain native 256×192; only the composited top 3D view expands.
 - GPL-3.0: if you distribute binaries, you must provide corresponding source.
 

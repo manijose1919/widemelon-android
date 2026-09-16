@@ -27,6 +27,7 @@ struct ComputeRenderSettings : public RenderSettings
 {
     int scale;
     bool highResCoordinates;
+    int viewWidth; // WideMelon 3D view width (256..768, even). 256 = native.
 };
 
 struct AudioSettings

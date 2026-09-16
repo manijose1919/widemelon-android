@@ -9,6 +9,8 @@ import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.consoleAspectRatio
+import me.magnum.melonds.domain.model.wideTopAspectRatio
+import me.magnum.melonds.domain.model.WIDE_TOP_SCREEN_WIDTH
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
 import me.magnum.melonds.ui.RdsRotation
 import me.magnum.melonds.ui.emulator.model.RuntimeRendererConfiguration
@@ -71,9 +73,11 @@ class ExternalScreenRender(
 
         val coords = if (keepAspectRatio) {
             val surfaceAspectRatio = actualWidth.toFloat() / actualHeight
-            if (surfaceAspectRatio > consoleAspectRatio) {
+            val contentAspect = if (widescreenViewWidth > SCREEN_WIDTH) wideTopAspectRatio else consoleAspectRatio
+            val contentWidth = if (widescreenViewWidth > SCREEN_WIDTH) WIDE_TOP_SCREEN_WIDTH else SCREEN_WIDTH
+            if (surfaceAspectRatio > contentAspect) {
                 val screenScale = actualHeight.toFloat() / SCREEN_HEIGHT
-                val scaledWidth = SCREEN_WIDTH * screenScale
+                val scaledWidth = contentWidth * screenScale
                 val relativeWidth = scaledWidth * 2f / actualWidth
                 val halfWidth = relativeWidth / 2f
                 floatArrayOf(
@@ -85,7 +89,7 @@ class ExternalScreenRender(
                     halfWidth, -1f,
                 )
             } else {
-                val screenScale = actualWidth.toFloat() / SCREEN_WIDTH
+                val screenScale = actualWidth.toFloat() / contentWidth
                 val scaledHeight = SCREEN_HEIGHT * screenScale
                 val relativeHeight = scaledHeight * 2f / actualHeight
                 val halfHeight = relativeHeight / 2f

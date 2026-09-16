@@ -35,6 +35,7 @@ private:
     void setupFrameBuffer();
     void setupShaders();
     void setupVertexBuffers();
+    void updateVertexBuffersForCurrentWidth();
     void notifyScreenshotReady();
 
     std::mutex screenshotMutex;

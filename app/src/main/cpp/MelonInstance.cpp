@@ -310,7 +310,7 @@ u32 MelonInstance::runFrame()
     {
         auto computeRenderSettings = static_cast<ComputeRenderSettings&>(*currentConfiguration->renderSettings);
         int scale = computeRenderSettings.scale;
-        screenWidth = 256 * scale;
+        screenWidth = WideMelon::Width() * scale;
         screenHeight = (192 + 1) * scale;
     }
     else
@@ -653,12 +653,18 @@ void MelonInstance::updateRenderer()
         auto& glRenderSettings = static_cast<OpenGlRenderSettings&>(*currentConfiguration->renderSettings);
         desiredViewWidth = glRenderSettings.viewWidth;
     }
+    else if (newRenderer == Renderer::Compute)
+    {
+        auto& computeRenderSettings = static_cast<ComputeRenderSettings&>(*currentConfiguration->renderSettings);
+        desiredViewWidth = computeRenderSettings.viewWidth;
+    }
 
     const bool widescreenChanged = (desiredViewWidth != WideMelon::Width());
     WideMelon::SetWidth(desiredViewWidth);
 
-    // Recreate the GL renderer when the widescreen profile changes so FBOs/vertices match.
-    if (newRenderer != currentRenderer || (newRenderer == Renderer::OpenGl && widescreenChanged))
+    // Recreate GL/Compute renderers when the widescreen profile changes so FBOs/vertices match.
+    if (newRenderer != currentRenderer
+        || ((newRenderer == Renderer::OpenGl || newRenderer == Renderer::Compute) && widescreenChanged))
     {
         switch (newRenderer)
         {

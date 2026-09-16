@@ -95,6 +95,7 @@ class SharedPreferencesSettingsRepository(
         preferences.registerOnSharedPreferenceChangeListener(this)
         setDefaultThemeIfRequired()
         setDefaultMacAddressIfRequired()
+        setWideMelonDefaultsIfRequired()
 
         renderConfigurationFlow = combine(
             combine(
@@ -130,6 +131,24 @@ class SharedPreferencesSettingsRepository(
         val macAddress = MacAddress.randomDsAddress()
         preferences.edit {
             putString("internal_mac_address", macAddress.toString())
+        }
+    }
+
+    /** Apply WideMelon-friendly video defaults only when keys were never set. */
+    private fun setWideMelonDefaultsIfRequired() {
+        if (preferences.getBoolean("widemelon_perf_defaults_v1", false))
+            return
+
+        preferences.edit {
+            if (!preferences.contains("video_renderer"))
+                putString("video_renderer", "opengl")
+            if (!preferences.contains("video_widescreen_view_width"))
+                putString("video_widescreen_view_width", "384")
+            if (!preferences.contains("video_internal_resolution"))
+                putString("video_internal_resolution", "2")
+            if (!preferences.contains("video_filtering"))
+                putString("video_filtering", "vibrant")
+            putBoolean("widemelon_perf_defaults_v1", true)
         }
     }
 
@@ -293,7 +312,7 @@ class SharedPreferencesSettingsRepository(
 
     override fun getVideoRenderer(): Flow<VideoRenderer> {
         return getOrCreatePreferenceSharedFlow("video_renderer") {
-            val videoRendererPreference = preferences.getString("video_renderer", "software")!!
+            val videoRendererPreference = preferences.getString("video_renderer", "opengl")!!
             VideoRenderer.valueOf(videoRendererPreference.uppercase())
         }
     }
@@ -301,21 +320,21 @@ class SharedPreferencesSettingsRepository(
 
     override fun getWidescreenViewWidth(): Flow<Int> {
         return getOrCreatePreferenceSharedFlow("video_widescreen_view_width") {
-            val value = preferences.getString("video_widescreen_view_width", "256")!!
-            value.toIntOrNull() ?: 256
+            val value = preferences.getString("video_widescreen_view_width", "384")!!
+            value.toIntOrNull() ?: 384
         }
     }
 
     override fun getVideoInternalResolutionScaling(): Flow<Int> {
         return getOrCreatePreferenceSharedFlow("video_internal_resolution") {
-            val internalResolutionPreference = preferences.getString("video_internal_resolution", "1")!!
-            internalResolutionPreference.toIntOrNull() ?: 1
+            val internalResolutionPreference = preferences.getString("video_internal_resolution", "2")!!
+            internalResolutionPreference.toIntOrNull() ?: 2
         }
     }
 
     override fun getVideoFiltering(): Flow<VideoFiltering> {
         return getOrCreatePreferenceSharedFlow("video_filtering") {
-            val filteringPreference = preferences.getString("video_filtering", "none")!!
+            val filteringPreference = preferences.getString("video_filtering", "vibrant")!!
             VideoFiltering.valueOf(filteringPreference.uppercase())
         }
     }

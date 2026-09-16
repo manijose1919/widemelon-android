@@ -1,6 +1,7 @@
 #include "ScreenshotRenderer.h"
 #include "MelonLog.h"
 #include "GPU.h"
+#include "WideMelon.h"
 
 namespace MelonDSAndroid
 {
@@ -29,6 +30,9 @@ void ScreenshotRenderer::renderScreenshot(GPU* gpu, Renderer renderer, Frame* re
     }
     else
     {
+        // Center-crop wide frames so save-state thumbnails stay native 256-wide.
+        updateVertexBuffersForCurrentWidth();
+
         glDisable(GL_SCISSOR_TEST);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_STENCIL_TEST);
@@ -194,29 +198,38 @@ void ScreenshotRenderer::setupShaders()
 
 void ScreenshotRenderer::setupVertexBuffers()
 {
-    float margin = 1.0f / 192.0f;
-    // Image is vertically flipped
-    const float vertices[] = {
-        //Position        // UV
-        -1.0f,  -1.0f,    0.0f, 0.0f,
-        -1.0f,  0.0f,     0.0f, 0.5f - margin,
-        1.0f,  0.0f,      1.0f, 0.5f - margin,
-
-        -1.0f,  -1.0f,    0.0f, 0.0f,
-        1.0f,  0.0f,      1.0f, 0.5f - margin,
-        1.0f, -1.0f,      1.0f, 0.0f,
-
-        -1.0f, 0.0f,      0.0f, 0.5f + margin,
-        -1.0f, 1.0f,      0.0f, 1.0f,
-        1.0f, 1.0f,       1.0f, 1.0f,
-
-        -1.0f, 0.0f,      0.0f, 0.5f + margin,
-        1.0f, 1.0f,       1.0f, 1.0f,
-        1.0f, 0.0f,       1.0f, 0.5f + margin,
-    };
-
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
+    updateVertexBuffersForCurrentWidth();
+}
+
+void ScreenshotRenderer::updateVertexBuffersForCurrentWidth()
+{
+    float margin = 1.0f / 192.0f;
+    const float width = (float)WideMelon::Width();
+    const float pad = (width - 256.0f) / (2.0f * width);
+    const float u0 = pad;
+    const float u1 = 1.0f - pad;
+
+    // Image is vertically flipped; U samples center-crop native 256 of wide textures.
+    const float vertices[] = {
+        //Position        // UV
+        -1.0f,  -1.0f,    u0, 0.0f,
+        -1.0f,  0.0f,     u0, 0.5f - margin,
+        1.0f,  0.0f,      u1, 0.5f - margin,
+
+        -1.0f,  -1.0f,    u0, 0.0f,
+        1.0f,  0.0f,      u1, 0.5f - margin,
+        1.0f, -1.0f,      u1, 0.0f,
+
+        -1.0f, 0.0f,      u0, 0.5f + margin,
+        -1.0f, 1.0f,      u0, 1.0f,
+        1.0f, 1.0f,       u1, 1.0f,
+
+        -1.0f, 0.0f,      u0, 0.5f + margin,
+        1.0f, 1.0f,       u1, 1.0f,
+        1.0f, 0.0f,       u1, 0.5f + margin,
+    };
 
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);

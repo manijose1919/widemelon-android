@@ -227,7 +227,7 @@
     <string name="category_video_summary">Filter, threaded rendering, FPS counter</string>
     <string name="filter">Filter</string>
     <string name="widescreen_view_width">Widescreen 3D view</string>
-    <string name="widescreen_view_width_summary">Expands the 3D view while keeping 2D and the touchscreen at native proportions. OpenGL renderer only. Restart the game after changing. %s</string>
+    <string name="widescreen_view_width_summary">Expands the 3D view while keeping 2D and the touchscreen at native proportions. OpenGL and Compute renderers. Restart the game after changing. Internal resolution is auto-capped with wider views for performance. %s</string>
     <string-array name="video_widescreen_view_width_options">
         <item>Native 4:3 (256)</item>
         <item>5:3 (320)</item>

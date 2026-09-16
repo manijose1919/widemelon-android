@@ -144,7 +144,9 @@ MelonDSAndroid::FirmwareConfiguration MelonDSAndroidConfiguration::buildFirmware
 std::unique_ptr<MelonDSAndroid::RenderSettings> MelonDSAndroidConfiguration::buildRenderSettings(JNIEnv* env, MelonDSAndroid::Renderer renderer, jobject renderSettings) {
     jclass renderSettingsClass = env->GetObjectClass(renderSettings);
     jmethodID getResolutionScalingMethod = env->GetMethodID(renderSettingsClass, "getResolutionScaling", "()I");
-    jmethodID getWidescreenViewWidthMethod = env->GetMethodID(renderSettingsClass, "getWidescreenViewWidth", "()I");
+    jmethodID getWidescreenViewWidthMethod = env->GetMethodID(renderSettingsClass, "getEffectiveWidescreenViewWidth", "()I");
+    if (!getWidescreenViewWidthMethod)
+        getWidescreenViewWidthMethod = env->GetMethodID(renderSettingsClass, "getWidescreenViewWidth", "()I");
     jboolean threadedRendering = env->GetBooleanField(renderSettings, env->GetFieldID(renderSettingsClass, "threadedRendering", "Z"));
     jint internalResolutionScaling = env->CallIntMethod(renderSettings, getResolutionScalingMethod);
     jint widescreenViewWidth = 256;
@@ -168,6 +170,7 @@ std::unique_ptr<MelonDSAndroid::RenderSettings> MelonDSAndroidConfiguration::bui
             MelonDSAndroid::ComputeRenderSettings {
                 .scale = internalResolutionScaling,
                 .highResCoordinates = true,
+                .viewWidth = widescreenViewWidth,
             }
         );
     }

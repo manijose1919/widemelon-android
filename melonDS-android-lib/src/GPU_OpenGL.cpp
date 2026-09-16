@@ -205,12 +205,39 @@ GLCompositor& GLCompositor::operator=(GLCompositor&& other) noexcept
 
 void GLCompositor::SetScaleFactor(int scale) noexcept
 {
-    if (scale == Scale)
+    const int desiredW = WideMelon::Width() * scale;
+    const int desiredH = (384 + 2) * scale;
+    if (scale == Scale && ScreenW == desiredW && ScreenH == desiredH)
         return;
 
     Scale = scale;
-    ScreenW = WideMelon::Width() * scale;
-    ScreenH = (384+2) * scale;
+    ScreenW = desiredW;
+    ScreenH = desiredH;
+
+    // Keep compositor UVs in sync with the active WideMelon width.
+#define SETVERTEX(i, x, y, offset) \
+    CompVertices[i].Position[0] = x; \
+    CompVertices[i].Position[1] = y + offset; \
+    CompVertices[i].Texcoord[0] = (x + 1.f) * (float(WideMelon::Width()) / 2.f); \
+    CompVertices[i].Texcoord[1] = (y + 1.f) * (384.f / 2.f)
+
+    const float padOffset = 1.f/(192*2.f+2.f)*2.f;
+    SETVERTEX(0, -1, 1, 0);
+    SETVERTEX(1, 1, 0, padOffset);
+    SETVERTEX(2, 1, 1, 0);
+    SETVERTEX(3, -1, 1, 0);
+    SETVERTEX(4, -1, 0, padOffset);
+    SETVERTEX(5, 1, 0, padOffset);
+    SETVERTEX(6, -1, 0, -padOffset);
+    SETVERTEX(7, 1, -1, 0);
+    SETVERTEX(8, 1, 0, -padOffset);
+    SETVERTEX(9, -1, 0, -padOffset);
+    SETVERTEX(10, -1, -1, 0);
+    SETVERTEX(11, 1, -1, 0);
+#undef SETVERTEX
+
+    glBindBuffer(GL_ARRAY_BUFFER, CompVertexBufferID);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(CompVertices), &CompVertices[0]);
 
     for (int i = 0; i < 2; i++)
     {

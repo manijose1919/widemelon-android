@@ -51,6 +51,7 @@ class VideoPreferencesFragment : BasePreferenceFragment(), PreferenceFragmentTit
 
         computeRendererPreferences.apply {
             add(findPreference("video_internal_resolution")!!)
+            add(findPreference("video_widescreen_view_width")!!)
         }
 
         val rendererPreference = findPreference<ListPreference>("video_renderer")!!

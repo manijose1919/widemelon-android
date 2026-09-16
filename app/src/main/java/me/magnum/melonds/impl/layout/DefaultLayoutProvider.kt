@@ -9,6 +9,8 @@ import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
 import me.magnum.melonds.domain.model.consoleAspectRatio
+import me.magnum.melonds.domain.model.wideTopAspectRatio
+import me.magnum.melonds.domain.model.WIDE_TOP_SCREEN_WIDTH
 import me.magnum.melonds.domain.model.layout.Insets
 import me.magnum.melonds.domain.model.layout.LayoutComponent
 import me.magnum.melonds.domain.model.layout.LayoutDisplay
@@ -180,16 +182,17 @@ class DefaultLayoutProvider(
         val spacing4dp = screenUnitsConverter.dpToPixels(4f).toInt()
 
         val screenComponents = if (singleScreenComponent == null) {
-            var topScreenWidth = (safeWidth * 0.66f).roundToInt()
-            var topScreenHeight = (topScreenWidth / consoleAspectRatio).toInt()
+            // Landscape WideMelon default: wide top screen, native-aspect touchscreen beside it.
+            var topScreenWidth = (safeWidth * 0.72f).roundToInt()
+            var topScreenHeight = (topScreenWidth / wideTopAspectRatio).toInt()
             if (topScreenHeight > safeHeight) {
-                topScreenWidth = (safeHeight * consoleAspectRatio).toInt()
                 topScreenHeight = safeHeight
+                topScreenWidth = (safeHeight * wideTopAspectRatio).toInt()
             }
 
             val topScreenView = Rect(safeLeft, safeTop, topScreenWidth, topScreenHeight)
-            val bottomScreenWidth = safeWidth - topScreenWidth
-            val bottomScreenHeight = (bottomScreenWidth / consoleAspectRatio).toInt()
+            val bottomScreenWidth = (safeWidth - topScreenWidth).coerceAtLeast(1)
+            val bottomScreenHeight = (bottomScreenWidth / consoleAspectRatio).toInt().coerceAtMost(safeHeight)
             val bottomScreenView = Rect(safeLeft + topScreenWidth, safeTop, bottomScreenWidth, bottomScreenHeight)
 
             arrayOf(
@@ -197,7 +200,11 @@ class DefaultLayoutProvider(
                 PositionedLayoutComponent(bottomScreenView, LayoutComponent.BOTTOM_SCREEN),
             )
         } else {
-            val screenArea = centerScreenIn(safeWidth, safeHeight)
+            val screenArea = if (singleScreenComponent == LayoutComponent.TOP_SCREEN) {
+                centerWideTopScreenIn(safeWidth, safeHeight)
+            } else {
+                centerScreenIn(safeWidth, safeHeight)
+            }
             val offsetScreen = Rect(screenArea.x + safeLeft, screenArea.y + safeTop, screenArea.width, screenArea.height)
             arrayOf(PositionedLayoutComponent(offsetScreen, singleScreenComponent))
         }
@@ -340,7 +347,11 @@ class DefaultLayoutProvider(
     }
 
     private fun buildSingleScreenLayout(width: Int, height: Int, screenComponent: LayoutComponent): ScreenLayout {
-        val screenView = centerScreenIn(width, height)
+        val screenView = if (screenComponent == LayoutComponent.TOP_SCREEN) {
+            centerWideTopScreenIn(width, height)
+        } else {
+            centerScreenIn(width, height)
+        }
         val positionedScreenComponent = PositionedLayoutComponent(screenView, screenComponent)
 
         return ScreenLayout(listOf(positionedScreenComponent))
@@ -356,6 +367,19 @@ class DefaultLayoutProvider(
         } else {
             // Center vertically
             val scale = width.toFloat() / SCREEN_WIDTH
+            val scaledHeight = (SCREEN_HEIGHT * scale).toInt()
+            Rect(0, (height - scaledHeight) / 2, width, scaledHeight)
+        }
+    }
+
+    private fun centerWideTopScreenIn(width: Int, height: Int): Rect {
+        val areaAspectRatio = width.toFloat() / height
+        return if (areaAspectRatio > wideTopAspectRatio) {
+            val scale = height.toFloat() / SCREEN_HEIGHT
+            val scaledWidth = (WIDE_TOP_SCREEN_WIDTH * scale).toInt()
+            Rect((width - scaledWidth) / 2, 0, scaledWidth, height)
+        } else {
+            val scale = width.toFloat() / WIDE_TOP_SCREEN_WIDTH
             val scaledHeight = (SCREEN_HEIGHT * scale).toInt()
             Rect(0, (height - scaledHeight) / 2, width, scaledHeight)
         }

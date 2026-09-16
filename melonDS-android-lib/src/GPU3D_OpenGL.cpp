@@ -331,14 +331,15 @@ void GLRenderer::SetScaleFactor(int scale) noexcept
 
 void GLRenderer::SetRenderSettings(bool betterpolygons, int scale) noexcept
 {
-    if (betterpolygons == BetterPolygons && scale == ScaleFactor)
+    const int desiredW = WideMelon::Width() * scale;
+    if (betterpolygons == BetterPolygons && scale == ScaleFactor && ScreenW == desiredW)
         return;
 
     CurGLCompositor.SetScaleFactor(scale);
     ScaleFactor = scale;
     BetterPolygons = betterpolygons;
 
-    ScreenW = WideMelon::Width() * scale;
+    ScreenW = desiredW;
     ScreenH = 192 * scale;
 
     glBindTexture(GL_TEXTURE_2D, ColorBufferTex);
@@ -461,7 +462,7 @@ u32* GLRenderer::SetupVertex(const Polygon* poly, int vid, const Vertex* vtx, u3
     }*/
 
     if (WideMelon::Enabled())
-        x = (static_cast<uint64_t>(vtx->HiresPosition[0]) * ScaleFactor * WideMelon::Width()) / (16 * 256);
+        x = WideMelon::MapHiresX(vtx->HiresPosition[0], ScaleFactor);
 
     *vptr++ = x | (y << 16);
     *vptr++ = z | (w << 16);
@@ -631,7 +632,7 @@ void GLRenderer::BuildPolygons(GLRenderer::RendererPolygon* polygons, int npolys
                 cT *= cW;
 
                 if (WideMelon::Enabled())
-                    cX = (static_cast<uint64_t>(cX) * ScaleFactor * WideMelon::Width()) / (16 * 256);
+                    cX = WideMelon::MapHiresX(cX, ScaleFactor);
                 else
                     cX = (cX * ScaleFactor) >> 4;
                 cY = (cY * ScaleFactor) >> 4;
