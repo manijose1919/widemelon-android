@@ -8,5 +8,7 @@ enum class VideoFiltering {
     HQ4X,
     QUILEZ,
     LCD,
-    SCANLINES
+    SCANLINES,
+    /** Soft upscale + mild vibrance/contrast for DS Pokémon-style pixel art. */
+    VIBRANT,
 }

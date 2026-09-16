@@ -7,4 +7,6 @@ data class RuntimeRendererConfiguration(
     val videoFiltering: VideoFiltering,
     val resolutionScaling: Int,
     val renderStrategy: RenderStrategy,
+    /** Compositor framebuffer width (256 native, or WideMelon even width up to 768). */
+    val widescreenViewWidth: Int = 256,
 )

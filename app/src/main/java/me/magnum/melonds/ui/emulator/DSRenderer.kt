@@ -7,10 +7,10 @@ import android.opengl.GLUtils
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.ScreenTextureUVs
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
-import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.VideoFiltering
 import me.magnum.melonds.domain.model.layout.BackgroundMode
 import me.magnum.melonds.domain.model.render.PresentFrameWrapper
@@ -156,26 +156,9 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         //   3                         5
         // Texture is vertically flipped
 
-        // The texture will have 2 empty lines between the screens. Take that into account when computing UVs
-        val lineRelativeSize = 1f / (SCREEN_HEIGHT * 2 + 2).toFloat()
-
-        val topUvs = floatArrayOf(
-            0f, 0.5f - lineRelativeSize,
-            0f, 0f,
-            1f, 0f,
-            0f, 0.5f - lineRelativeSize,
-            1f, 0f,
-            1f, 0.5f - lineRelativeSize,
-        )
-
-        val bottomUvs = floatArrayOf(
-            0f, 1f,
-            0f, 0.5f + lineRelativeSize,
-            1f, 0.5f + lineRelativeSize,
-            0f, 1f,
-            1f, 0.5f + lineRelativeSize,
-            1f, 1f,
-        )
+        val wideWidth = rendererConfiguration?.widescreenViewWidth ?: 256
+        val topUvs = ScreenTextureUVs.topUVs(wideWidth)
+        val bottomUvs = ScreenTextureUVs.bottomUVs(wideWidth)
 
         val (overScreenVertexData, underScreenVertexData) = if (bottomOnTop) {
             val over = bottomScreenRect?.let { buildScreenVertexData(it, bottomUvs, bottomAlpha) }
@@ -226,7 +209,8 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
         screenShader?.delete()
 
         val filtering = rendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
-        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering)
+        val textureWidth = rendererConfiguration?.widescreenViewWidth ?: 256
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(filtering, textureWidth)
         screenShader = ShaderFactory.createShaderProgram(shaderSource)
     }
 

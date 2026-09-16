@@ -433,34 +433,110 @@ class ShaderProgramSource private constructor(val textureFiltering: TextureFilte
 
         // Fragment shader based on "Improved texture interpolation" by Iñigo Quílez
         // Original description: http://www.iquilezles.org/www/articles/texture/texture.htm
-        val QuilezShader = ShaderProgramSource(
-            TextureFiltering.LINEAR,
-            DEFAULT_VERT_SHADER,
-            "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
-                    "precision highp float;\n" +
-                    "#else\n" +
-                    "precision mediump float;\n" +
-                    "#endif\n" +
-                    "uniform sampler2D tex;\n" +
-                    "varying float alpha;\n" +
-                    "varying vec2 uv;\n" +
-                    "" +
-                    "vec4 getTexel(vec2 p) {\n" +
-                    "    vec2 textureSize = vec2($TEXTURE_WIDTH, $TEXTURE_HEIGHT);\n" +
-                    "    p = p * textureSize + vec2(0.5);\n" +
-                    "" +
-                    "    vec2 i = floor(p);\n" +
-                    "    vec2 f = p - i;\n" +
-                    "    f = f * f * f * (f * (f * 6.0 - vec2(15.0)) + vec2(10.0));\n" +
-                    "    p = i + f;\n" +
-                    "" +
-                    "    p = (p - vec2(0.5)) / textureSize;\n" +
-                    "    return texture2D(tex, p);\n" +
-                    "}\n" +
-                    "" +
-                    "void main() {\n" +
-                    "    gl_FragColor = vec4(getTexel(uv).bgr, alpha);\n" +
-                    "}"
-        )
+        val QuilezShader = createQuilezShader(TEXTURE_WIDTH)
+
+        /**
+         * Soft Quílez upscale plus light vibrance/contrast.
+         * Tuned for DS Pokémon (SoulSilver, Black, etc.): keeps pixel-art readability
+         * while making colors a bit richer on modern phone panels.
+         */
+        fun createVibrantShader(textureWidth: Int = TEXTURE_WIDTH): ShaderProgramSource {
+            val tw = textureWidth.coerceIn(256, 768)
+            return ShaderProgramSource(
+                TextureFiltering.LINEAR,
+                DEFAULT_VERT_SHADER,
+                """
+                #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+                #else
+                precision mediump float;
+                #endif
+                uniform sampler2D tex;
+                varying float alpha;
+                varying vec2 uv;
+
+                vec4 getTexel(vec2 p) {
+                    vec2 textureSize = vec2($tw, $TEXTURE_HEIGHT);
+                    p = p * textureSize + vec2(0.5);
+                    vec2 i = floor(p);
+                    vec2 f = p - i;
+                    f = f * f * f * (f * (f * 6.0 - vec2(15.0)) + vec2(10.0));
+                    p = i + f;
+                    p = (p - vec2(0.5)) / textureSize;
+                    return texture2D(tex, p);
+                }
+
+                vec3 vibrance(vec3 color, float amount) {
+                    float luma = dot(color, vec3(0.299, 0.587, 0.114));
+                    float maxc = max(color.r, max(color.g, color.b));
+                    float minc = min(color.r, min(color.g, color.b));
+                    float sat = maxc - minc;
+                    // Boost low/mid saturation more than already-vivid pixels
+                    float boost = amount * (1.0 - smoothstep(0.15, 0.85, sat));
+                    return mix(vec3(luma), color, 1.0 + boost);
+                }
+
+                void main() {
+                    vec3 color = getTexel(uv).bgr;
+
+                    // Gentle contrast around midtones (keeps blacks/whites)
+                    color = (color - 0.5) * 1.08 + 0.5;
+
+                    // Mild brightness lift so shadows stay readable outdoors/indoors
+                    color *= 1.04;
+
+                    // Pokémon-friendly vibrance without crushing cel shading
+                    color = vibrance(color, 0.28);
+
+                    // Soft unsharp using a tiny neighbor tap (detail without halos)
+                    vec2 texel = 1.0 / vec2($tw, $TEXTURE_HEIGHT);
+                    vec3 blur = (
+                        getTexel(uv + vec2(texel.x, 0.0)).bgr +
+                        getTexel(uv - vec2(texel.x, 0.0)).bgr +
+                        getTexel(uv + vec2(0.0, texel.y)).bgr +
+                        getTexel(uv - vec2(0.0, texel.y)).bgr
+                    ) * 0.25;
+                    color = clamp(color + (color - blur) * 0.35, 0.0, 1.0);
+
+                    gl_FragColor = vec4(color, alpha);
+                }
+                """.trimIndent()
+            )
+        }
+
+        fun createQuilezShader(textureWidth: Int = TEXTURE_WIDTH): ShaderProgramSource {
+            val tw = textureWidth.coerceIn(256, 768)
+            return ShaderProgramSource(
+                TextureFiltering.LINEAR,
+                DEFAULT_VERT_SHADER,
+                "#ifdef GL_FRAGMENT_PRECISION_HIGH\n" +
+                        "precision highp float;\n" +
+                        "#else\n" +
+                        "precision mediump float;\n" +
+                        "#endif\n" +
+                        "uniform sampler2D tex;\n" +
+                        "varying float alpha;\n" +
+                        "varying vec2 uv;\n" +
+                        "" +
+                        "vec4 getTexel(vec2 p) {\n" +
+                        "    vec2 textureSize = vec2($tw, $TEXTURE_HEIGHT);\n" +
+                        "    p = p * textureSize + vec2(0.5);\n" +
+                        "" +
+                        "    vec2 i = floor(p);\n" +
+                        "    vec2 f = p - i;\n" +
+                        "    f = f * f * f * (f * (f * 6.0 - vec2(15.0)) + vec2(10.0));\n" +
+                        "    p = i + f;\n" +
+                        "" +
+                        "    p = (p - vec2(0.5)) / textureSize;\n" +
+                        "    return texture2D(tex, p);\n" +
+                        "}\n" +
+                        "" +
+                        "void main() {\n" +
+                        "    gl_FragColor = vec4(getTexel(uv).bgr, alpha);\n" +
+                        "}"
+            )
+        }
+
+        val VibrantShader = createVibrantShader(TEXTURE_WIDTH)
     }
 }

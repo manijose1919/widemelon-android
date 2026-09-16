@@ -12,8 +12,15 @@ object VideoFilterShaderProvider {
         VideoFiltering.QUILEZ to ShaderProgramSource.QuilezShader,
         VideoFiltering.LCD to ShaderProgramSource.LcdShader,
         VideoFiltering.SCANLINES to ShaderProgramSource.ScanlinesShader,
+        VideoFiltering.VIBRANT to ShaderProgramSource.VibrantShader,
     )
 
-    fun getShaderSource(filtering: VideoFiltering): ShaderProgramSource =
-        FILTERING_SHADER_MAP[filtering] ?: ShaderProgramSource.NoFilterShader
+    fun getShaderSource(filtering: VideoFiltering, textureWidth: Int = 256): ShaderProgramSource {
+        val width = textureWidth.coerceIn(256, 768).let { if (it % 2 != 0) it - 1 else it }
+        return when (filtering) {
+            VideoFiltering.VIBRANT -> ShaderProgramSource.createVibrantShader(width)
+            VideoFiltering.QUILEZ -> ShaderProgramSource.createQuilezShader(width)
+            else -> FILTERING_SHADER_MAP[filtering] ?: ShaderProgramSource.NoFilterShader
+        }
+    }
 }

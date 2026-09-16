@@ -3,6 +3,7 @@ package me.magnum.melonds.ui.emulator.render
 import android.opengl.GLES30
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
+import me.magnum.melonds.common.opengl.ScreenTextureUVs
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.SCREEN_HEIGHT
 import me.magnum.melonds.domain.model.SCREEN_WIDTH
@@ -24,6 +25,7 @@ class ExternalScreenRender(
     private var screensVao = 0
 
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
+    private var widescreenViewWidth: Int = 256
 
     private var surfaceWidth = 0
     private var surfaceHeight = 0
@@ -34,7 +36,9 @@ class ExternalScreenRender(
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         synchronized(viewportLock) {
             videoFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+            widescreenViewWidth = newRendererConfiguration?.widescreenViewWidth ?: 256
             areRenderSettingsDirty = true
+            areVerticesDirty = true
         }
     }
 
@@ -47,7 +51,7 @@ class ExternalScreenRender(
 
     override fun onSurfaceCreated() {
         shader = ShaderFactory.createShaderProgram(
-            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            VideoFilterShaderProvider.getShaderSource(videoFiltering, widescreenViewWidth)
         )
 
         val buffers = IntArray(2)
@@ -109,26 +113,7 @@ class ExternalScreenRender(
             RdsRotation.rotateLeft(coords)
         }
 
-        val lineRelativeSize = 1f / (SCREEN_HEIGHT * 2 + 2).toFloat()
-        val uvs = if (true /*screen == DsExternalScreen.TOP*/) {
-            floatArrayOf(
-                0f, 0.5f - lineRelativeSize,
-                0f, 0f,
-                1f, 0f,
-                0f, 0.5f - lineRelativeSize,
-                1f, 0f,
-                1f, 0.5f - lineRelativeSize
-            )
-        } else {
-            floatArrayOf(
-                0f, 1f,
-                0f, 0.5f + lineRelativeSize,
-                1f, 0.5f + lineRelativeSize,
-                0f, 1f,
-                1f, 0.5f + lineRelativeSize,
-                1f, 1f
-            )
-        }
+        val uvs = ScreenTextureUVs.topUVs(widescreenViewWidth)
 
         val vertexData = floatArrayOf(
             coords[0], coords[1],   uvs[0], uvs[1], 1f,
@@ -155,7 +140,7 @@ class ExternalScreenRender(
         // Delete previous shader
         shader?.delete()
 
-        val shaderSource = VideoFilterShaderProvider.getShaderSource(videoFiltering)
+        val shaderSource = VideoFilterShaderProvider.getShaderSource(videoFiltering, widescreenViewWidth)
         shader = ShaderFactory.createShaderProgram(shaderSource)
     }
 

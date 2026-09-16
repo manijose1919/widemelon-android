@@ -67,6 +67,7 @@
         <item>hq4x</item>
         <item>quilez</item>
         <item>lcd</item>
+        <item>vibrant</item>
     </string-array>
 
     <string-array name="dsi_camera_source_values">

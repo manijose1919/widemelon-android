@@ -59,9 +59,13 @@ layout(location = 0) out vec4 oColor;
 void main()
 {
     // Wide view: fTexcoord.x spans 0..uWideWidth. Native 2D stays centered.
+    // Widescreen wings (extra 3D FOV) apply to the TOP screen only.
+    // Bottom/touch screen stays native 256px; side columns stay black.
     int widePad = max(uWidePad, 0);
     float nativeX = fTexcoord.x - float(widePad);
-    bool wing = (nativeX < 0.0) || (nativeX >= 256.0);
+    bool isTopScreen = (fTexcoord.y < 192.0);
+    bool outOfNative = (nativeX < 0.0) || (nativeX >= 256.0);
+    bool wing = isTopScreen && outOfNative;
     vec2 nativeCoord = vec2(clamp(nativeX, 0.0, 255.0), fTexcoord.y);
 
     ivec4 mbright = ivec4(texelFetch(ScreenTex, ivec2(256*3, int(fTexcoord.y)), 0));
@@ -72,23 +76,33 @@ void main()
     float _3dxpos = float(mbright.a - ((mbright.b & 0x80) * 2));
 
     ivec4 pixel = ivec4(0);
-    if (!wing)
+    if (!outOfNative)
         pixel = ivec4(texelFetch(ScreenTex, ivec2(nativeCoord), 0));
 
-    // Always sample 3D across the full wide coordinate space
+    // Sample 3D across the full wide coordinate space on the top screen only
     float xpos3d = fTexcoord.x + (wing ? 0.0 : _3dxpos);
     float ypos3d = mod(fTexcoord.y, 192.0);
-    ivec4 _3dpixWide = ivec4(texelFetch(_3DTex, ivec2(vec2(xpos3d, ypos3d) * float(u3DScale)), 0).bgra
-                     * vec4(63,63,63,31));
+    ivec4 _3dpixWide = ivec4(0);
+    if (isTopScreen || !outOfNative)
+    {
+        _3dpixWide = ivec4(texelFetch(_3DTex, ivec2(vec2(xpos3d, ypos3d) * float(u3DScale)), 0).bgra
+                         * vec4(63,63,63,31));
+    }
 
     if (wing)
     {
-        // Side columns: reveal expanded 3D only (no 2D HUD)
+        // Top-screen side columns: reveal expanded 3D only (no 2D HUD)
         if (_3dpixWide.a > 0)
             pixel = _3dpixWide;
         else
             pixel = ivec4(0);
         dispmode = 1; // apply brightness below using mbright from center scanline
+    }
+    else if (outOfNative)
+    {
+        // Bottom-screen side columns: keep black (no widescreen bleed)
+        pixel = ivec4(0);
+        dispmode = 0;
     }
     else if (dispmode == 1)
     {

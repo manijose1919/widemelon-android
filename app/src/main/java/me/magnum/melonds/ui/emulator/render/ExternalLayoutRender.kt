@@ -8,6 +8,7 @@ import android.opengl.GLUtils
 import me.magnum.melonds.common.opengl.Shader
 import me.magnum.melonds.common.opengl.ShaderFactory
 import me.magnum.melonds.common.opengl.ShaderProgramSource
+import me.magnum.melonds.common.opengl.ScreenTextureUVs
 import me.magnum.melonds.common.opengl.VideoFilterShaderProvider
 import me.magnum.melonds.domain.model.Rect
 import me.magnum.melonds.domain.model.RuntimeBackground
@@ -55,10 +56,6 @@ class ExternalLayoutRender(
     private val rotateLeft: Boolean,
 ) : EmulatorRenderer {
 
-    companion object {
-        private const val TOTAL_SCREEN_HEIGHT = 384
-    }
-
     private lateinit var shader: Shader
 
     private var posTop: FloatBuffer? = null
@@ -68,6 +65,7 @@ class ExternalLayoutRender(
     private lateinit var uvBottom: FloatBuffer
 
     private var videoFiltering: VideoFiltering = VideoFiltering.NONE
+    private var widescreenViewWidth: Int = 256
 
     private var viewWidth = 0
     private var viewHeight = 0
@@ -136,6 +134,19 @@ class ExternalLayoutRender(
         posBottom = bottomScreen?.let { rectToBuffer(it) }
     }
 
+    private fun updateUvBuffers() {
+        val topUvs = ScreenTextureUVs.topUVs(widescreenViewWidth)
+        val bottomUvs = ScreenTextureUVs.bottomUVs(widescreenViewWidth)
+        uvTop = ByteBuffer.allocateDirect(topUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(topUvs)
+        uvBottom = ByteBuffer.allocateDirect(bottomUvs.size * 4)
+            .order(ByteOrder.nativeOrder())
+            .asFloatBuffer()
+            .put(bottomUvs)
+    }
+
     fun setBackground(background: RuntimeBackground) {
         synchronized(backgroundLock) {
             this.background = background
@@ -146,6 +157,17 @@ class ExternalLayoutRender(
     }
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
+        videoFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+        widescreenViewWidth = newRendererConfiguration?.widescreenViewWidth ?: 256
+        if (this::shader.isInitialized) {
+            shader.delete()
+            shader = ShaderFactory.createShaderProgram(
+                VideoFilterShaderProvider.getShaderSource(videoFiltering, widescreenViewWidth)
+            )
+        }
+        if (this::uvTop.isInitialized) {
+            updateUvBuffers()
+        }
     }
 
     override fun setLeftRotationEnabled(enabled: Boolean) {
@@ -153,7 +175,7 @@ class ExternalLayoutRender(
 
     override fun onSurfaceCreated() {
         shader = ShaderFactory.createShaderProgram(
-            VideoFilterShaderProvider.getShaderSource(videoFiltering)
+            VideoFilterShaderProvider.getShaderSource(videoFiltering, widescreenViewWidth)
         )
 
         val textures = IntArray(1)
@@ -166,31 +188,7 @@ class ExternalLayoutRender(
         GLES30.glTexParameteri(GLES30.GL_TEXTURE_2D, GLES30.GL_TEXTURE_MAG_FILTER, GLES30.GL_LINEAR)
 
         backgroundShader = ShaderFactory.createShaderProgram(ShaderProgramSource.BackgroundShader)
-        val lineRelativeSize = 1f / (TOTAL_SCREEN_HEIGHT + 2).toFloat()
-        val topUvs = floatArrayOf(
-            0f, 0.5f - lineRelativeSize,
-            0f, 0f,
-            1f, 0f,
-            0f, 0.5f - lineRelativeSize,
-            1f, 0f,
-            1f, 0.5f - lineRelativeSize,
-        )
-        val bottomUvs = floatArrayOf(
-            0f, 1f,
-            0f, 0.5f + lineRelativeSize,
-            1f, 0.5f + lineRelativeSize,
-            0f, 1f,
-            1f, 0.5f + lineRelativeSize,
-            1f, 1f,
-        )
-        uvTop = ByteBuffer.allocateDirect(topUvs.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(topUvs)
-        uvBottom = ByteBuffer.allocateDirect(bottomUvs.size * 4)
-            .order(ByteOrder.nativeOrder())
-            .asFloatBuffer()
-            .put(bottomUvs)
+        updateUvBuffers()
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
@@ -260,7 +258,7 @@ class ExternalLayoutRender(
         if (this::shader.isInitialized) {
             shader.delete()
             shader = ShaderFactory.createShaderProgram(
-                VideoFilterShaderProvider.getShaderSource(videoFiltering)
+                VideoFilterShaderProvider.getShaderSource(videoFiltering, widescreenViewWidth)
             )
         }
     }
