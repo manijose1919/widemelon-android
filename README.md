@@ -6,7 +6,7 @@ This is **not** the desktop WideMelon phone-bridge feature. Games run on the pho
 
 Widescreen logic is adapted from [pruefsumme/widemelon](https://github.com/pruefsumme/widemelon) (GPL-3.0).
 
-**Current app version:** `2.0.3-widescreen`
+**Current app version:** `2.0.4-widescreen`
 
 ## Docs
 
@@ -14,8 +14,10 @@ Widescreen logic is adapted from [pruefsumme/widemelon](https://github.com/pruef
 |-----|----------|
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How WideMelon is wired into melonDS-android |
 | [docs/BUILDING.md](docs/BUILDING.md) | Build, flavors, APK output |
+| [docs/SETTINGS.md](docs/SETTINGS.md) | Video / WideMelon settings reference |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Seams, pop-in, slowdowns, layouts |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Known bugs, perf work, feature ideas, backlog |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
 | [NOTICE.md](NOTICE.md) | License / attribution notes |
 
 ## What you get

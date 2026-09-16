@@ -1,6 +1,6 @@
 # Roadmap & future work
 
-Living backlog for WideMelon DS (Android). Items are ordered by practical impact, not calendar estimates. Check boxes as work lands; open GitHub issues for anything you start tracking publicly.
+Living backlog for WideMelon DS (Android). Items are ordered by practical impact, not calendar estimates. Check boxes as work lands.
 
 ## Known issues / bug fixes
 
@@ -13,8 +13,8 @@ Living backlog for WideMelon DS (Android). Items are ordered by practical impact
 
 ### Medium
 
-- [ ] **APK in git history** — `releases/*.apk` exceeds GitHub’s ~50 MB soft limit; move binaries to GitHub Releases / CI artifacts; purge or LFS if history must stay clean.
-- [ ] **Filter cost on wide frames** — HQ2X/HQ4X/XBR still heavy; auto-suggest lighter filters when width × IR exceeds a threshold.
+- [x] **APK in git** — stopped tracking `releases/*.apk`; CI uploads artifacts (`2.0.4`)
+- [x] **Filter cost on wide frames** — cost hint + auto-downgrade HQ/XBR when width×IR is heavy (`2.0.4`)
 - [ ] **External display / dual-screen** — verify top-on-external + bottom-on-phone with widescreen UVs and aspect.
 - [ ] **Foldables / book layouts** — default folding layouts still use native aspect for both screens; optional wide-top on the primary pane.
 - [ ] **Regression suite** — scripted checklist: native 256, 384@2× OpenGL, 384@2× Compute, bottom touch, save-state screenshot, no bottom bleed.
@@ -27,19 +27,19 @@ Living backlog for WideMelon DS (Android). Items are ordered by practical impact
 
 ## Performance optimizations
 
-- [ ] **Default to Compute on Adreno** when available (first-run or capability probe), keep OpenGL fallback.
+- [x] **Default to Compute on Adreno** when available (first-run) (`2.0.4`)
 - [ ] **Adaptive IR** — optionally drop IR one step when frame time spikes under widescreen (user toggle).
 - [ ] **Compositor pass** — profile `GLCompositor` on wide FBOs; avoid redundant clears/uploads; ensure padding fill isn’t per-frame heavy.
-- [ ] **Compute tile sizing** — revisit `TileSize` / dispatch when `ScreenWidth` is non-multiple-of-old assumptions; micro-opt Adreno occupancy.
-- [ ] **Presentation path** — skip expensive filter shader recompiles unless filtering or width actually changed.
+- [ ] **Compute tile sizing** — revisit `TileSize` / dispatch for non-256 widths; micro-opt Adreno occupancy.
+- [x] **Presentation path** — skip filter shader recompiles unless filtering or width changed (`2.0.4`)
 - [ ] **Thermal / sustained** — document battery profiles (384@2× vs 512@2×) for S25 Ultra + ROG grip sessions.
-- [ ] **Strip debug logging** in Compute (`printf` scale/tile) for release builds.
+- [x] **Strip debug logging** in Compute (`printf` scale/tile) (`2.0.4`)
 
 ## Features worth adding
 
 ### Rendering / video
 
-- [ ] **Presets** — “Pokémon handheld”, “Max wide”, “Performance” one-taps (renderer + width + IR + filter).
+- [x] **Presets** — Performance / Balanced / Quality / Max wide (`2.0.4`)
 - [ ] **Per-game video overrides** — remember widescreen profile per ROM (like layouts).
 - [ ] **Optional wing fill modes** — black / mirror edge / blur (cosmetic; default remains black/empty 3D clear).
 - [ ] **Better Pokémon visual modes** — tune Vibrant; optional LCD+Vibrant combo carefully.
@@ -50,14 +50,15 @@ Living backlog for WideMelon DS (Android). Items are ordered by practical impact
 - [ ] **Wide-first layout pack** — landscape: large top wide, small bottom corner (matches many users’ manual layouts).
 - [ ] **Controller profiles** — ROG Tessen / Gamesir quick maps.
 - [ ] **Onboarding** — first-run card: Compute + 384 + 2× + restart reminder.
-- [ ] **In-settings cost meter** — show relative GPU cost of width × IR before apply.
+- [x] **In-settings cost meter** — relative GPU cost of width × IR (`2.0.4`)
 
 ### Platform / distribution
 
-- [ ] **GitHub Actions** — build `assembleGitHubProdDebug` (and release) on tag; attach APK to Release.
+- [x] **GitHub Actions debug APK** — `widemelon-debug.yml` (`2.0.4`)
+- [ ] **Tag Release workflow** — attach APK on version tags
 - [ ] **Signed release builds** — user-owned keystore docs (never commit secrets).
-- [ ] **Keeppace with upstream melonDS-android** — periodic merge; resolve WideMelon conflicts deliberately.
-- [ ] **Changelog** — `CHANGELOG.md` per widescreen version.
+- [ ] **Keep pace with upstream melonDS-android** — periodic merge; resolve WideMelon conflicts deliberately.
+- [x] **Changelog** — `CHANGELOG.md`
 
 ### Stretch / research
 
@@ -66,29 +67,20 @@ Living backlog for WideMelon DS (Android). Items are ordered by practical impact
 - [ ] **Non-Adreno Compute** if melonDS Compute gains broader GPU support.
 - [ ] **Desktop WideMelon parity audit** — compare projection/compositor behavior with pruefsumme/widemelon periodically.
 
-## Documentation still useful to write
+## Documentation
 
-- [x] Architecture overview (`docs/ARCHITECTURE.md`)
-- [x] Building (`docs/BUILDING.md`)
-- [x] Troubleshooting (`docs/TROUBLESHOOTING.md`)
-- [x] This roadmap
-- [ ] **Game compatibility matrix** — community table (title, width sweet spot, Compute OK?, notes on cull/seams)
-- [ ] **Settings reference** — every Video preference explained
-- [ ] **Layout authoring guide** — designing for wide top + native bottom
-- [ ] **Contributing** — coding style, how to test widescreen changes, PR checklist
-- [ ] **Security / secrets** — never commit PATs; rotate if pasted into chat/CI logs
+- [x] Architecture / Building / Troubleshooting / Roadmap / Contributing
+- [x] Settings reference (`docs/SETTINGS.md`)
+- [ ] **Game compatibility matrix**
+- [ ] **Layout authoring guide**
+- [ ] **Security / secrets** note for contributors
 
-## Non-goals (for now)
+## Suggested next slices
 
-- Shipping copyrighted ROMs or BIOS dumps
-- Claiming “perfect” widescreen in cull-heavy overworlds without game patches
-- Maintaining a huge APK inside git as the primary distribution method
-
-## Suggested next 3 engineering slices
-
-1. **CI + GitHub Release APK** (stop relying on fat files in `releases/`)
-2. **Per-game video presets + onboarding defaults for Adreno Compute**
-3. **Seam regression pass + optional adaptive IR**
+1. **Layout match-widescreen helper** + wide-first landscape pack
+2. **Seam regression pass** + any remaining OpenGL/Compute X precision paths
+3. **Per-game video overrides** + optional adaptive IR toggle
+4. **Tag → GitHub Release** APK workflow
 
 ---
 

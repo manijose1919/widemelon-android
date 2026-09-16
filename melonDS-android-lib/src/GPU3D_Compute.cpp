@@ -365,9 +365,6 @@ void ComputeRenderer::SetRenderSettings(int scale, bool highResolutionCoordinate
     TileScale <<= 1;
     TileScale += TileScale == 0;
 
-    std::printf("Scale: %d\n", ScaleFactor);
-    std::printf("TileScale: %d\n", TileScale);
-    
     TileSize = std::min(8 * TileScale, 32);
     CoarseTileCountY = TileSize < 32 ? 4 : 6;
     ClearCoarseBinMaskLocalSize = TileSize < 32 ? 64 : 48;

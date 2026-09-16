@@ -157,9 +157,12 @@ class ExternalLayoutRender(
     }
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
-        videoFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
-        widescreenViewWidth = newRendererConfiguration?.widescreenViewWidth ?: 256
-        if (this::shader.isInitialized) {
+        val newFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+        val newWidth = newRendererConfiguration?.widescreenViewWidth ?: 256
+        val shaderChanged = newFiltering != videoFiltering || newWidth != widescreenViewWidth
+        videoFiltering = newFiltering
+        widescreenViewWidth = newWidth
+        if (shaderChanged && this::shader.isInitialized) {
             shader.delete()
             shader = ShaderFactory.createShaderProgram(
                 VideoFilterShaderProvider.getShaderSource(videoFiltering, widescreenViewWidth)

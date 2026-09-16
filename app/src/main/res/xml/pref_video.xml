@@ -12,6 +12,14 @@
             android:entryValues="@array/video_renderer_values"
             android:defaultValue="opengl"/>
 
+    <ListPreference
+            android:key="video_widescreen_preset"
+            android:title="@string/widescreen_preset"
+            android:summary="@string/widescreen_preset_summary"
+            app:iconSpaceReserved="false"
+            android:entries="@array/video_widescreen_preset_options"
+            android:entryValues="@array/video_widescreen_preset_values"
+            android:defaultValue="balanced"/>
 
     <ListPreference
             android:key="video_widescreen_view_width"
@@ -29,6 +37,13 @@
             android:entries="@array/video_internal_resolution_options"
             android:entryValues="@array/video_internal_resolution_values"
             android:defaultValue="2"/>
+
+    <Preference
+            android:key="video_widescreen_cost_hint"
+            android:title="@string/widescreen_gpu_cost"
+            android:summary="@string/widescreen_gpu_cost_summary_placeholder"
+            app:iconSpaceReserved="false"
+            android:selectable="false"/>
 
     <SwitchPreference
             android:key="enable_threaded_rendering"

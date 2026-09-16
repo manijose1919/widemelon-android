@@ -136,12 +136,13 @@ class SharedPreferencesSettingsRepository(
 
     /** Apply WideMelon-friendly video defaults only when keys were never set. */
     private fun setWideMelonDefaultsIfRequired() {
-        if (preferences.getBoolean("widemelon_perf_defaults_v1", false))
+        if (preferences.getBoolean("widemelon_perf_defaults_v2", false))
             return
 
+        val preferCompute = Build.HARDWARE.equals("qcom", ignoreCase = true)
         preferences.edit {
             if (!preferences.contains("video_renderer"))
-                putString("video_renderer", "opengl")
+                putString("video_renderer", if (preferCompute) "compute" else "opengl")
             if (!preferences.contains("video_widescreen_view_width"))
                 putString("video_widescreen_view_width", "384")
             if (!preferences.contains("video_internal_resolution"))
@@ -149,6 +150,7 @@ class SharedPreferencesSettingsRepository(
             if (!preferences.contains("video_filtering"))
                 putString("video_filtering", "vibrant")
             putBoolean("widemelon_perf_defaults_v1", true)
+            putBoolean("widemelon_perf_defaults_v2", true)
         }
     }
 

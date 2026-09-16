@@ -37,10 +37,12 @@ class ExternalScreenRender(
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         synchronized(viewportLock) {
-            videoFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
-            widescreenViewWidth = newRendererConfiguration?.widescreenViewWidth ?: 256
-            areRenderSettingsDirty = true
-            areVerticesDirty = true
+            val newFiltering = newRendererConfiguration?.videoFiltering ?: VideoFiltering.NONE
+            val newWidth = newRendererConfiguration?.widescreenViewWidth ?: 256
+            areRenderSettingsDirty = newFiltering != videoFiltering || newWidth != widescreenViewWidth
+            areVerticesDirty = newWidth != widescreenViewWidth || areVerticesDirty
+            videoFiltering = newFiltering
+            widescreenViewWidth = newWidth
         }
     }
 

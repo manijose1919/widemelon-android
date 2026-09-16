@@ -37,7 +37,11 @@ Install:
 adb install -r app/build/outputs/apk/gitHubProd/debug/app-gitHub-prod-debug.apk
 ```
 
-A copy is sometimes kept under `releases/WideMelonDS-debug.apk` for convenience. That file is **~50 MB** (GitHub’s soft limit); prefer CI artifacts or Releases with attached binaries rather than bloating git history long-term.
+A copy may appear under CI artifacts. Do **not** commit multi‑tens‑of‑MB APKs into `releases/` — see `releases/README.md`.
+
+## CI
+
+Push/PR to `main` runs **WideMelon Debug APK** (`.github/workflows/widemelon-debug.yml`) and uploads `WideMelonDS-debug`.
 
 ## Useful Gradle tips
 

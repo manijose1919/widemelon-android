@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.4-widescreen
+
+- Strip Compute renderer scale/tile debug `printf` spam
+- Prefer **Compute** as first-run default on Adreno (`qcom`) devices
+- WideMelon **presets** (Performance / Balanced / Quality / Max wide)
+- Live **GPU cost hint** for width × internal resolution
+- Auto-downgrade HQ/XBR filters when width×IR is too heavy (favor Vibrant)
+- Skip redundant presentation shader rebuilds when filter/width unchanged
+- GitHub Actions workflow `widemelon-debug.yml` uploads debug APK artifacts
+- Stop tracking fat APKs in git (`releases/` now points at CI/Releases)
+
 ## 2.0.3-widescreen
 
 - Rounded WideMelon X projection/mapping to reduce dashed tile seams

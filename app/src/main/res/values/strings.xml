@@ -228,6 +228,18 @@
     <string name="filter">Filter</string>
     <string name="widescreen_view_width">Widescreen 3D view</string>
     <string name="widescreen_view_width_summary">Expands the 3D view while keeping 2D and the touchscreen at native proportions. OpenGL and Compute renderers. Restart the game after changing. Internal resolution is auto-capped with wider views for performance. %s</string>
+    <string name="widescreen_preset">WideMelon preset</string>
+    <string name="widescreen_preset_summary">Applies renderer, width, internal resolution, and filter together. Restart the game after changing width. Current: %s</string>
+    <string name="widescreen_preset_performance">Performance (320 · 2× · None)</string>
+    <string name="widescreen_preset_balanced">Balanced (384 · 2× · Vibrant)</string>
+    <string name="widescreen_preset_quality">Quality (384 · 3× · Quilez)</string>
+    <string name="widescreen_preset_max_wide">Max wide (512 · 2× · Vibrant)</string>
+    <string name="widescreen_preset_applied">Applied preset: %1$s</string>
+    <string name="widescreen_gpu_cost">Estimated 3D GPU cost</string>
+    <string name="widescreen_gpu_cost_summary_placeholder">Depends on widescreen width × internal resolution</string>
+    <string name="widescreen_gpu_cost_summary">%1$s. Prefer Compute on Adreno. Restart game after width changes.</string>
+    <string name="widescreen_heavy_filter_warning">HQ/XBR filters are expensive with widescreen. Prefer Vibrant, Quilez, or None.</string>
+    <string name="widescreen_heavy_filter_downgraded">%1$s is too heavy for this width×IR — switched to %2$s</string>
     <string-array name="video_widescreen_view_width_options">
         <item>Native 4:3 (256)</item>
         <item>5:3 (320)</item>
@@ -569,6 +581,13 @@
         <item>Quilez</item>
         <item>LCD</item>
         <item>Vibrant (Pokémon)</item>
+    </string-array>
+
+    <string-array name="video_widescreen_preset_options">
+        <item>@string/widescreen_preset_performance</item>
+        <item>@string/widescreen_preset_balanced</item>
+        <item>@string/widescreen_preset_quality</item>
+        <item>@string/widescreen_preset_max_wide</item>
     </string-array>
 
     <string-array name="dsi_camera_source_options">

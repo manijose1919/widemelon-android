@@ -26,6 +26,7 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
     private val configurationLock = Any()
     private var rendererConfiguration: RuntimeRendererConfiguration? = null
     private var mustUpdateConfiguration = false
+    private var mustUpdateShader = true
     private var isBackgroundPositionDirty = false
     private var isBackgroundLoaded = false
 
@@ -60,8 +61,12 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
 
     override fun updateRendererConfiguration(newRendererConfiguration: RuntimeRendererConfiguration?) {
         synchronized(configurationLock) {
+            val previous = rendererConfiguration
             rendererConfiguration = newRendererConfiguration
             mustUpdateConfiguration = true
+            // Shader only depends on filter + texture width; skip rebuild when unchanged.
+            mustUpdateShader = previous?.videoFiltering != newRendererConfiguration?.videoFiltering ||
+                previous?.widescreenViewWidth != newRendererConfiguration?.widescreenViewWidth
         }
     }
 
@@ -141,7 +146,10 @@ class DSRenderer(private val context: Context) : EmulatorRenderer {
 
     private fun applyRendererConfiguration() {
         updateScreenCoordinates()
-        updateShader()
+        if (mustUpdateShader) {
+            updateShader()
+            mustUpdateShader = false
+        }
     }
 
     private fun updateScreenCoordinates() {
