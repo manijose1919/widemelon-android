@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.5-widescreen
+
+- Fast-forward renders 3D at 1× internal resolution (widescreen width stays). Releasing fast-forward restores the configured scale.
+- Skip rewind GPU readback while fast-forward is held. Manual screenshots still capture.
+- OpenGL skips a 3D redraw when geometry is unchanged. A scale change still forces the next frame. On Compute, switching fast-forward on or off rebuilds shaders once for the new scale.
+- Widescreen top always shows the 3D engine. The touch engine stays on the bottom screen, including when a game clears the display-swap bit. The in-app swap button still exchanges the two layout slots.
+
 ## 2.0.4-widescreen
 
 - Strip Compute renderer scale/tile debug `printf` spam

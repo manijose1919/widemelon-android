@@ -153,6 +153,8 @@ private:
 
     int ScaleFactor {};
     bool BetterPolygons {};
+    // Fresh or resized color buffer must be drawn even if geometry is unchanged.
+    bool ForceNextRender = true;
     int ScreenW {}, ScreenH {};
 
     GLuint ColorBufferTex {}, DepthBufferTex {}, AttrBufferTex {};

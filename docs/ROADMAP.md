@@ -15,6 +15,7 @@ Living backlog for WideMelon DS (Android). Items are ordered by practical impact
 
 - [x] **APK in git** — stopped tracking `releases/*.apk`; CI uploads artifacts (`2.0.4`)
 - [x] **Filter cost on wide frames** — cost hint + auto-downgrade HQ/XBR when width×IR is heavy (`2.0.4`)
+- [x] **Touch UI on the widescreen top** — compositor keeps engine A on the wide half and engine B on the bottom slot when display swap is off (`2.0.5`)
 - [ ] **External display / dual-screen** — verify top-on-external + bottom-on-phone with widescreen UVs and aspect.
 - [ ] **Foldables / book layouts** — default folding layouts still use native aspect for both screens; optional wide-top on the primary pane.
 - [ ] **Regression suite** — scripted checklist: native 256, 384@2× OpenGL, 384@2× Compute, bottom touch, save-state screenshot, no bottom bleed.
@@ -28,6 +29,7 @@ Living backlog for WideMelon DS (Android). Items are ordered by practical impact
 ## Performance optimizations
 
 - [x] **Default to Compute on Adreno** when available (first-run) (`2.0.4`)
+- [x] **Fast-forward IR** — hold fast-forward at 1× internal resolution, restore configured IR on release; skip rewind GPU readback during fast-forward (`2.0.5`)
 - [ ] **Adaptive IR** — optionally drop IR one step when frame time spikes under widescreen (user toggle).
 - [ ] **Compositor pass** — profile `GLCompositor` on wide FBOs; avoid redundant clears/uploads; ensure padding fill isn’t per-frame heavy.
 - [ ] **Compute tile sizing** — revisit `TileSize` / dispatch for non-256 widths; micro-opt Adreno occupancy.

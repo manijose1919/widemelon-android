@@ -6,7 +6,7 @@ This is **not** the desktop WideMelon phone-bridge feature. Games run on the pho
 
 Widescreen logic is adapted from [pruefsumme/widemelon](https://github.com/pruefsumme/widemelon) (GPL-3.0).
 
-**Current app version:** `2.0.4-widescreen`
+**Current app version:** `2.0.5-widescreen`
 
 ## Docs
 
@@ -25,6 +25,7 @@ Widescreen logic is adapted from [pruefsumme/widemelon](https://github.com/pruef
 - Expands the DS **3D** view (even widths from 256 to 768) while keeping **2D / menus / touchscreen** at native proportions in the center
 - Works with **OpenGL** and **Compute** (Adreno) renderers
 - Internal resolution is **auto-capped** with wider views so WideMelon × IR stays smoother on phones
+- Fast-forward renders 3D at 1× (width stays wide) so it can run ahead of the display
 - Defaults: OpenGL, 2:1 (384) widescreen, 2× IR, Vibrant filter
 - Landscape default layout uses a wide top-screen aspect
 - Settings → Video → **Widescreen 3D view**

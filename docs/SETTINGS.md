@@ -31,6 +31,8 @@ Even widths 256–768. Only affects **3D**; 2D/touch stay centered native 256.
 
 Multiplies 3D resolution. Combined with width and **auto-capped** so `width × IR ≤ 1536` (see `RendererConfiguration.MAX_HORIZONTAL_PIXELS`).
 
+While fast-forward is held, 3D is rendered at 1× and the configured scale is restored when you let go. Widescreen width does not change.
+
 ## Estimated 3D GPU cost
 
 Read-only hint: `Light / Comfortable / Heavy / Very heavy` from width × effective IR. Use it before applying extreme combos.

@@ -335,6 +335,9 @@ void GLRenderer::SetRenderSettings(bool betterpolygons, int scale) noexcept
     if (betterpolygons == BetterPolygons && scale == ScaleFactor && ScreenW == desiredW)
         return;
 
+    // Color/depth textures are reallocated below and start undefined.
+    ForceNextRender = true;
+
     CurGLCompositor.SetScaleFactor(scale);
     ScaleFactor = scale;
     BetterPolygons = betterpolygons;
@@ -1130,6 +1133,12 @@ void GLRenderer::RenderSceneChunk(const GPU3D& gpu3d, int y, int h)
 
 void GLRenderer::RenderFrame(GPU& gpu)
 {
+    // Same early-out Compute already uses. Games that flush geometry every
+    // frame never hit this; static frames skip the wide raster and VRAM upload.
+    if (!ForceNextRender && gpu.GPU3D.RenderFrameIdentical)
+        return;
+    ForceNextRender = false;
+
     CurShaderID = -1;
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);

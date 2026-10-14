@@ -48,6 +48,8 @@ precision mediump usampler2D;
 uniform uint u3DScale;
 uniform int uWideWidth;
 uniform int uWidePad;
+// 1 when POWCNT1 display-swap puts engine A on the upper LCD.
+uniform int uEngineAOnUpper;
 
 uniform usampler2D ScreenTex;
 uniform sampler2D _3DTex;
@@ -59,16 +61,21 @@ layout(location = 0) out vec4 oColor;
 void main()
 {
     // Wide view: fTexcoord.x spans 0..uWideWidth. Native 2D stays centered.
-    // Widescreen wings (extra 3D FOV) apply to the TOP screen only.
-    // Bottom/touch screen stays native 256px; side columns stay black.
+    // y < 192 is the half Android presents as the top (widescreen) screen.
+    // That half always shows engine A. The other half always shows engine B,
+    // so a hardware display swap cannot paint the touch UI across the wide view.
     int widePad = max(uWidePad, 0);
     float nativeX = fTexcoord.x - float(widePad);
-    bool isTopScreen = (fTexcoord.y < 192.0);
+    bool outputIsTop = (fTexcoord.y < 192.0);
+    float localY = outputIsTop ? fTexcoord.y : (fTexcoord.y - 192.0);
+    bool engineAOnUpper = (uEngineAOnUpper != 0);
+    bool sampleUpperLcd = outputIsTop ? engineAOnUpper : !engineAOnUpper;
+    float srcY = clamp(sampleUpperLcd ? localY : (localY + 192.0), 0.0, 383.0);
     bool outOfNative = (nativeX < 0.0) || (nativeX >= 256.0);
-    bool wing = isTopScreen && outOfNative;
-    vec2 nativeCoord = vec2(clamp(nativeX, 0.0, 255.0), fTexcoord.y);
+    bool wing = outputIsTop && outOfNative;
+    vec2 nativeCoord = vec2(clamp(nativeX, 0.0, 255.0), srcY);
 
-    ivec4 mbright = ivec4(texelFetch(ScreenTex, ivec2(256*3, int(fTexcoord.y)), 0));
+    ivec4 mbright = ivec4(texelFetch(ScreenTex, ivec2(256*3, int(srcY)), 0));
     int dispmode = mbright.b & 0x3;
 
     // mbright.a == HOFS bit0..7
@@ -79,11 +86,11 @@ void main()
     if (!outOfNative)
         pixel = ivec4(texelFetch(ScreenTex, ivec2(nativeCoord), 0));
 
-    // Sample 3D across the full wide coordinate space on the top screen only
+    // 3D exists only on engine A, which is the widescreen (output top) half.
     float xpos3d = fTexcoord.x + (wing ? 0.0 : _3dxpos);
-    float ypos3d = mod(fTexcoord.y, 192.0);
+    float ypos3d = localY;
     ivec4 _3dpixWide = ivec4(0);
-    if (isTopScreen || !outOfNative)
+    if (outputIsTop)
     {
         _3dpixWide = ivec4(texelFetch(_3DTex, ivec2(vec2(xpos3d, ypos3d) * float(u3DScale)), 0).bgra
                          * vec4(63,63,63,31));
@@ -104,7 +111,7 @@ void main()
         pixel = ivec4(0);
         dispmode = 0;
     }
-    else if (dispmode == 1)
+    else if (outputIsTop && dispmode == 1)
     {
         ivec4 val1 = pixel;
         ivec4 val2 = ivec4(texelFetch(ScreenTex, ivec2(nativeCoord) + ivec2(256,0), 0));

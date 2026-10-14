@@ -348,6 +348,9 @@ void ComputeRenderer::SetRenderSettings(int scale, bool highResolutionCoordinate
         return;
     }
 
+    // Color buffer is reallocated below and starts undefined.
+    ForceRender = true;
+
     if (ScaleFactor != -1)
     {
         DeleteShaders();
@@ -654,10 +657,13 @@ struct Variant
 void ComputeRenderer::RenderFrame(GPU& gpu)
 {
     assert(!NeedsShaderCompile());
-    if (!Texcache.Update(gpu) && gpu.GPU3D.RenderFrameIdentical)
+    // Texcache::Update must run even when this frame is forced: it tracks VRAM.
+    const bool texturesChanged = Texcache.Update(gpu);
+    if (!ForceRender && !texturesChanged && gpu.GPU3D.RenderFrameIdentical)
     {
         return;
     }
+    ForceRender = false;
 
     int numYSpans = 0;
     int numSetupIndices = 0;
