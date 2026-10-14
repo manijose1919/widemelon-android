@@ -49,7 +49,10 @@ float fps = 0;
 int targetFps;
 float fastForwardSpeedMultiplier;
 bool limitFps = true;
-bool isFastForwardEnabled = false;
+
+namespace MelonDSAndroid {
+std::atomic<bool> isFastForwardEnabled{false};
+}
 
 jobject globalCameraManager;
 MelonDSAndroidCameraHandler* androidCameraHandler;
@@ -246,7 +249,7 @@ Java_me_magnum_melonds_MelonEmulator_startEmulation(JNIEnv* env, jobject thiz)
     isThreadReallyPaused = false;
     limitFps = true;
     targetFps = 60;
-    isFastForwardEnabled = false;
+    MelonDSAndroid::isFastForwardEnabled.store(false, std::memory_order_relaxed);
 
     pthread_mutex_init(&emuThreadMutex, NULL);
     pthread_cond_init(&emuThreadCond, NULL);
@@ -516,7 +519,7 @@ Java_me_magnum_melonds_MelonEmulator_takeScreenshot(JNIEnv* env, jobject thiz)
 JNIEXPORT void JNICALL
 Java_me_magnum_melonds_MelonEmulator_setFastForwardEnabled(JNIEnv* env, jobject thiz, jboolean enabled)
 {
-    isFastForwardEnabled = enabled;
+    MelonDSAndroid::isFastForwardEnabled.store(enabled, std::memory_order_relaxed);
     if (enabled) {
         limitFps = fastForwardSpeedMultiplier > 0;
         targetFps = 60 * fastForwardSpeedMultiplier;
@@ -557,7 +560,7 @@ Java_me_magnum_melonds_MelonEmulator_updateEmulatorConfiguration(JNIEnv* env, jo
 
     MelonDSAndroid::updateEmulatorConfiguration(std::make_unique<MelonDSAndroid::EmulatorConfiguration>(std::move(newConfiguration)));
 
-    if (isFastForwardEnabled) {
+    if (MelonDSAndroid::isFastForwardEnabled.load(std::memory_order_relaxed)) {
         limitFps = fastForwardSpeedMultiplier > 0;
         targetFps = 60 * fastForwardSpeedMultiplier;
 

@@ -75,6 +75,7 @@ public:
 
 private:
     void updateRenderer();
+    void syncFastForwardRenderScale();
     void setBatteryLevels();
     void setDateTime();
     void saveRewindState(RewindSaveState* rewindSaveState);

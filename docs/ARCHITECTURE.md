@@ -8,7 +8,7 @@ This fork adds a **true widescreen 3D view** to the Android port of melonDS. 2D 
 Game GPU commands
     → GPU3D (clip space) + WideMelon::ProjectX
     → OpenGL or Compute 3D renderer (ScreenW = Width × IR)
-    → GLCompositor (top wings = 3D only; bottom sides black)
+    → GLCompositor (widescreen half is always engine A; touch engine stays on the bottom; top wings = 3D only)
     → App presents texture with ScreenTextureUVs
          top  = full width
          bottom = center-crop 256
@@ -22,7 +22,7 @@ Game GPU commands
 | `GPU3D.cpp` | Applies `ProjectX` after clip transform |
 | `GPU3D_OpenGL.cpp` | Wide FB size; maps vertex X into wide pixels |
 | `GPU3D_Compute.cpp` + shaders | Same width path for Adreno Compute; low-res capture center-cropped |
-| `GPU_OpenGL.cpp` (compositor) | Top-only wings; bottom side columns stay black (no bleed) |
+| `GPU_OpenGL.cpp` (compositor) | Widescreen half is always engine A (display swap is absorbed); top-only wings; bottom side columns stay black |
 | `app/.../MelonInstance.cpp` | Sets width before (re)creating OpenGL/Compute renderer; frame size uses `WideMelon::Width()` |
 
 ## Key Android / Kotlin pieces
@@ -53,6 +53,8 @@ horizontal_pixels ≈ widescreen_width × internal_resolution
 ```
 
 `RendererConfiguration.MAX_HORIZONTAL_PIXELS` (~256×6) caps IR so ultra-wide + high IR cannot silently destroy frame rate.
+
+Fast-forward drops that internal resolution to 1× on the emulator thread and restores it when fast-forward ends. Widescreen width is unchanged. Rewind screenshots are not read back during fast-forward.
 
 ## Package / identity
 

@@ -1,6 +1,7 @@
 #ifndef MELONDS_MELONDS_H
 #define MELONDS_MELONDS_H
 
+#include <atomic>
 #include <list>
 #include <vector>
 #include "AndroidFileHandler.h"
@@ -27,6 +28,9 @@ namespace MelonDSAndroid {
         ROM,
         FIRMWARE
     } RunMode;
+
+    // Written on the UI thread, read on the emulator thread.
+    extern std::atomic<bool> isFastForwardEnabled;
 
     extern OpenGLContext *openGlContext;
     extern AndroidFileHandler* fileHandler;

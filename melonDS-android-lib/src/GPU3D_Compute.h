@@ -44,6 +44,7 @@ public:
     void Reset(GPU& gpu) override;
 
     void SetRenderSettings(int scale, bool highResolutionCoordinates);
+    [[nodiscard]] int GetScaleFactor() const noexcept { return ScaleFactor; }
 
     void VCount144(GPU& gpu) override;
 
@@ -225,6 +226,8 @@ private:
     int ScreenWidth, ScreenHeight;
     int TilesPerLine, TileLines;
     int ScaleFactor = -1;
+    // Fresh or resized color buffer must be drawn even if geometry is unchanged.
+    bool ForceRender = false;
     int MaxWorkTiles;
     bool HiresCoordinates;
 

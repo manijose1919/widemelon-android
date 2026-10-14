@@ -36,6 +36,18 @@
 - Confirm you’re on 2.0.2+
 - Custom layouts: bottom rect should not expect stretched widescreen HUD
 
+## Touch screen appears on the widescreen top
+
+**Cause:** The wide view followed the upper LCD. Games that clear the display-swap bit put the touch engine on that LCD, so its UI was drawn across the widescreen top as well as in the touch slot.
+
+**Status:** Fixed in 2.0.5. The widescreen half always shows the 3D engine and the bottom slot always shows the touch engine. Use the in-app swap button if you want those slots exchanged. A game that intentionally puts 3D on the lower LCD will still show 3D on the wide view.
+
+## Fast-forward is barely faster than normal speed
+
+**Cause:** Fast-forward still rendered 3D at the full internal resolution, and rewind captured a GPU readback on that path.
+
+**Status:** 2.0.5 drops internal resolution to 1× while fast-forward is held (widescreen width stays) and skips rewind screenshots during fast-forward. Normal speed uses your configured IR again. On Compute, the first press and release can hitch once while shaders rebuild for that scale.
+
 ## Touch / stylus wrong on bottom screen
 
 Bottom input is still native 256×192 mapped into the centered bottom view. If a custom layout stretches the bottom oddly, remapping can feel off—use a layout where bottom stays ~4:3.

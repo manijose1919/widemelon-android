@@ -298,6 +298,9 @@ u32 MelonInstance::runFrame()
         isRenderConfigurationDirty = false;
     }
 
+    // After config apply, so a settings change cannot restore full IR mid fast-forward.
+    syncFastForwardRenderScale();
+
     int screenWidth;
     int screenHeight;
     if (currentRenderer == Renderer::OpenGl)
@@ -308,8 +311,9 @@ u32 MelonInstance::runFrame()
     }
     else if (currentRenderer == Renderer::Compute)
     {
-        auto computeRenderSettings = static_cast<ComputeRenderSettings&>(*currentConfiguration->renderSettings);
-        int scale = computeRenderSettings.scale;
+        int scale = static_cast<ComputeRenderer&>(nds->GPU.GetRenderer3D()).GetScaleFactor();
+        if (scale < 1)
+            scale = static_cast<ComputeRenderSettings&>(*currentConfiguration->renderSettings).scale;
         screenWidth = WideMelon::Width() * scale;
         screenHeight = (192 + 1) * scale;
     }
@@ -398,7 +402,9 @@ u32 MelonInstance::runFrame()
         firmwareSave->CheckFlush();
 
     frame++;
-    bool needsRewindCapture = rewindManager.ShouldCaptureState(frame);
+    // Rewind screenshots read the GPU back. Skip that while fast-forwarding; a manual screenshot still captures.
+    const bool fastForward = isFastForwardEnabled.load(std::memory_order_relaxed);
+    bool needsRewindCapture = !fastForward && rewindManager.ShouldCaptureState(frame);
     bool needsScreenshot = screenshotRenderer->isScreenshotPending();
 
     if (needsRewindCapture || needsScreenshot) [[unlikely]]
@@ -641,6 +647,28 @@ std::vector<RetroAchievements::RARuntimeAchievement> MelonInstance::getRuntimeAc
         return retroAchievementsManager->GetRuntimeAchievements();
     else
         return { };
+}
+
+void MelonInstance::syncFastForwardRenderScale()
+{
+    const bool fastForward = isFastForwardEnabled.load(std::memory_order_relaxed);
+
+    if (currentRenderer == Renderer::OpenGl)
+    {
+        auto& glRenderSettings = static_cast<OpenGlRenderSettings&>(*currentConfiguration->renderSettings);
+        const int desired = fastForward ? 1 : glRenderSettings.scale;
+        auto& renderer = static_cast<GLRenderer&>(nds->GPU.GetRenderer3D());
+        if (renderer.GetScaleFactor() != desired)
+            renderer.SetRenderSettings(glRenderSettings.betterPolygons, desired);
+    }
+    else if (currentRenderer == Renderer::Compute)
+    {
+        auto& computeRenderSettings = static_cast<ComputeRenderSettings&>(*currentConfiguration->renderSettings);
+        const int desired = fastForward ? 1 : computeRenderSettings.scale;
+        auto& renderer = static_cast<ComputeRenderer&>(nds->GPU.GetRenderer3D());
+        if (renderer.GetScaleFactor() != desired)
+            renderer.SetRenderSettings(desired, computeRenderSettings.highResCoordinates);
+    }
 }
 
 void MelonInstance::updateRenderer()

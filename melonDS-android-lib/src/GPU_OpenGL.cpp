@@ -54,6 +54,7 @@ GLCompositor::GLCompositor(GLuint compShader) noexcept : CompShader(compShader)
     CompScaleLoc = glGetUniformLocation(CompShader, "u3DScale");
     CompWideWidthLoc = glGetUniformLocation(CompShader, "uWideWidth");
     CompWidePadLoc = glGetUniformLocation(CompShader, "uWidePad");
+    CompEngineAOnUpperLoc = glGetUniformLocation(CompShader, "uEngineAOnUpper");
 
     glUseProgram(CompShader);
     GLuint screenTextureUniform = glGetUniformLocation(CompShader, "ScreenTex");
@@ -144,6 +145,7 @@ GLCompositor::GLCompositor(GLCompositor&& other) noexcept :
     CompScaleLoc(other.CompScaleLoc),
     CompWideWidthLoc(other.CompWideWidthLoc),
     CompWidePadLoc(other.CompWidePadLoc),
+    CompEngineAOnUpperLoc(other.CompEngineAOnUpperLoc),
     CompVertices(other.CompVertices),
     CompShader(other.CompShader),
     CompVertexBufferID(other.CompVertexBufferID),
@@ -170,6 +172,7 @@ GLCompositor& GLCompositor::operator=(GLCompositor&& other) noexcept
         CompScaleLoc = other.CompScaleLoc;
         CompWideWidthLoc = other.CompWideWidthLoc;
         CompWidePadLoc = other.CompWidePadLoc;
+        CompEngineAOnUpperLoc = other.CompEngineAOnUpperLoc;
         CompVertices = other.CompVertices;
 
         // Clean up these resources before overwriting them
@@ -283,6 +286,11 @@ void GLCompositor::RenderFrame(const GPU& gpu, Renderer3D& renderer) noexcept
 
     glViewport(0, 0, ScreenW, ScreenH);
 
+    // Gap between the two screens is not covered by the quads. Clear it so a
+    // recycled output texture cannot leave a second image in that strip.
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
     // TODO: select more shaders (filtering, etc)
     glUseProgram(CompShader);
     glUniform1ui(CompScaleLoc, Scale);
@@ -290,6 +298,8 @@ void GLCompositor::RenderFrame(const GPU& gpu, Renderer3D& renderer) noexcept
         glUniform1i(CompWideWidthLoc, WideMelon::Width());
     if (CompWidePadLoc >= 0)
         glUniform1i(CompWidePadLoc, WideMelon::SidePad());
+    if (CompEngineAOnUpperLoc >= 0)
+        glUniform1i(CompEngineAOnUpperLoc, (gpu.NDS.PowerControl9 >> 15) & 1);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, CompScreenInputTex);
